@@ -6,31 +6,26 @@ var app = builder.Build();
 
 app.Run(async (context) =>
 {
-    await context.Response.SendFileAsync("image.png");
-    // Отправка html-страницы
     context.Response.ContentType = "text/html; charset=utf-8";
-    await context.Response.SendFileAsync("html/index.html");
-    var path = context.Request.Path;
-    var fullPath = $"html/{path}";
-    var responce = context.Response;
 
-    responce.ContentType = "text/html; charset=utf-8";
-    if (File.Exists(fullPath))
-        await responce.SendFileAsync(fullPath);
-    else
+    // если обращение идет по адресу "/postuser", получаем данные формы
+    if (context.Request.Path == "/postuser")
     {
-        responce.StatusCode = 404;
-        await responce.WriteAsync("<h2>Not Found</h2>");
+        var form = context.Request.Form;
+        string name = form["name"]!;
+        string age = form["age"]!;
+        string[] languages = form["languages"]!;
+        string langList = "";
+        foreach(var lang in languages)
+        {
+            langList += $" {lang}";
+        }
+        await context.Response.WriteAsync($"<div><p>Name: {name}</p>" +
+            $"<p>Age: {age}</p>" +
+            $"<div>Languages: {langList}</ul></div>");
     }
-    // Загрузка файла
-    context.Response.Headers.ContentDisposition = "attachment; filename=image.png";
-    await context.Response.SendFileAsync("image.png");
-    // IFileInfo
-    var fileProvider = new PhysicalFileProvider(Directory.GetCurrentDirectory());
-    var fileInfo = fileProvider.GetFileInfo("image.png");
-
-    context.Response.Headers.ContentDisposition = "attachment; filename=image.png";
-    await context.Response.SendFileAsync(fileInfo);
+    else
+        await context.Response.SendFileAsync("html/index.html");
 });
 
 app.Run();

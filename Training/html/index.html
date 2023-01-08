@@ -5,6 +5,27 @@
     <title>METANIT.COM</title>
 </head>
 <body>
-    <h2>Hello ASP.NET Core!</h2>
+    <h2>User form</h2>
+    <form method="post" action="postuser">
+        <p>Name: <br />
+            <input name="name" />
+        </p>
+        <p>Age: <br />
+            <input name="age" type="number" />
+        </p>
+        <p>
+            Languages: <br />
+            <!--<input name="languages" /><br />
+            <input name="languages" /><br />
+            <input name="languages" /><br />-->
+            <select multiple name="languages">
+                <option>C#</option>
+                <option>JavaScript</option>
+                <option>Kotlin</option>
+                <option>Java</option>
+            </select>
+        </p>
+        <input type="submit" value="Send" />
+    </form>
 </body>
 </html>
