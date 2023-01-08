@@ -1,3 +1,4 @@
+using Microsoft.Extensions.FileProviders;
 using System.Runtime.InteropServices.ComTypes;
 
 var builder = WebApplication.CreateBuilder();
@@ -5,44 +6,31 @@ var app = builder.Build();
 
 app.Run(async (context) =>
 {
+    await context.Response.SendFileAsync("image.png");
+    // Отправка html-страницы
     context.Response.ContentType = "text/html; charset=utf-8";
-    var stringBuilder = new System.Text.StringBuilder("<table>");
-
-    foreach (var header in context.Request.Headers)
-    {
-        stringBuilder.Append($"<tr><td>{header.Key}</td><td>{header.Value}</td></tr>");
-    }
-    stringBuilder.Append("</table>");
-    await context.Response.WriteAsync(stringBuilder.ToString());
-    var acceptHeaderValue = context.Request.Headers.Accept;
-    //var acceptHeaderValue = context.Request.Headers["accept"];
-    await context.Response.WriteAsync($"Accept: {acceptHeaderValue}");
+    await context.Response.SendFileAsync("html/index.html");
     var path = context.Request.Path;
-    var now = DateTime.Now;
-    var response = context.Response;
+    var fullPath = $"html/{path}";
+    var responce = context.Response;
 
-    if (path == "/date")
-        await response.WriteAsync($"Date: {now.ToShortDateString()}");
-    else if (path == "/time")
-        await response.WriteAsync($"Time: {now.ToShortTimeString()}");
+    responce.ContentType = "text/html; charset=utf-8";
+    if (File.Exists(fullPath))
+        await responce.SendFileAsync(fullPath);
     else
-        await response.WriteAsync("Hello METANIT.COM");
-
-    await context.Response.WriteAsync($"<p>Path: {context.Request.Path}</p>"
-        + $"<p>QueryString: {context.Request.QueryString}</p>");
-    stringBuilder = new System.Text.StringBuilder("<h3>Параметры строки запроса</h3><table>");
-    stringBuilder.Append("<tr><td>Параметр</td><td>Значение</td></tr>");
-    foreach (var param in context.Request.Query)
     {
-        stringBuilder.Append($"<tr><td>{param.Key}</td><td>{param.Value}</td></tr>");
+        responce.StatusCode = 404;
+        await responce.WriteAsync("<h2>Not Found</h2>");
     }
-    stringBuilder.Append("</table>");
-    await context.Response.WriteAsync(stringBuilder.ToString());
-    string name = context.Request.Query["name"]!;
-    string age = context.Request.Query["age"]!;
-    await context.Response.WriteAsync($"{name} - {age}");
+    // Загрузка файла
+    context.Response.Headers.ContentDisposition = "attachment; filename=image.png";
+    await context.Response.SendFileAsync("image.png");
+    // IFileInfo
+    var fileProvider = new PhysicalFileProvider(Directory.GetCurrentDirectory());
+    var fileInfo = fileProvider.GetFileInfo("image.png");
 
-
+    context.Response.Headers.ContentDisposition = "attachment; filename=image.png";
+    await context.Response.SendFileAsync(fileInfo);
 });
 
 app.Run();
