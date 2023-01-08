@@ -6,26 +6,13 @@ var app = builder.Build();
 
 app.Run(async (context) =>
 {
-    context.Response.ContentType = "text/html; charset=utf-8";
-
-    // если обращение идет по адресу "/postuser", получаем данные формы
-    if (context.Request.Path == "/postuser")
-    {
-        var form = context.Request.Form;
-        string name = form["name"]!;
-        string age = form["age"]!;
-        string[] languages = form["languages"]!;
-        string langList = "";
-        foreach(var lang in languages)
-        {
-            langList += $" {lang}";
-        }
-        await context.Response.WriteAsync($"<div><p>Name: {name}</p>" +
-            $"<p>Age: {age}</p>" +
-            $"<div>Languages: {langList}</ul></div>");
-    }
+    if (context.Request.Path == "/old")
+        //context.Response.Redirect("https://www.twitch.tv/"); // Но можно использовать редирект на внешние ресурсы
+        context.Response.Redirect("/new");
+    else if (context.Request.Path == "/new")
+        await context.Response.WriteAsync("New Page");
     else
-        await context.Response.SendFileAsync("html/index.html");
+        await context.Response.WriteAsync("Main Page");
 });
 
 app.Run();
