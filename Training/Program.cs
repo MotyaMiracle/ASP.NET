@@ -7,10 +7,14 @@ using System.Text.Json;
 var builder = WebApplication.CreateBuilder();
 var app = builder.Build();
 
-app.UseWhen(
+app.MapWhen(
     context => context.Request.Path == "/time", // если путь запроса "/time"
-    HandTimeRequest
-);
+    appBuilder => appBuilder.Run(async context =>
+    {
+        var time = DateTime.Now.ToShortTimeString();
+        await context.Response.WriteAsync($"Current time: {time}");
+    }
+));
 
 app.Run(async (context) =>
 {
@@ -18,14 +22,3 @@ app.Run(async (context) =>
 });
 
 app.Run();
-void HandTimeRequest(IApplicationBuilder appBuilder) {
-
-        // логгируем данные - выводим на консоль приложения
-        appBuilder.Use(async (context, next) =>
-        {
-            var time = DateTime.Now.ToShortTimeString();
-            Console.WriteLine($"Time: {time}");
-            await next(); // вызываем следующий middleware
-        });
- 
-}
