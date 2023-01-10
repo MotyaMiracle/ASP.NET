@@ -1,45 +1,44 @@
 using Microsoft.Extensions.FileProviders;
 using System.ComponentModel;
 using System.Runtime.InteropServices.ComTypes;
+using System.Text;
 using System.Text.Json;
-using Training;
 
 var builder = WebApplication.CreateBuilder();
 var app = builder.Build();
 
 app.Run(async (context) =>
 {
-    var response = context.Response;
+    var responce = context.Response;
     var request = context.Request;
-    if(request.Path == "/api/user")
+
+    responce.ContentType = "text/html; charset=utf-8";
+
+    if (request.Path == "/upload" && request.Method == "POST")
     {
-        var responseText = "Неккоректные данные"; // Содержит сообщения по умолчанию
-        if (request.HasJsonContentType())
+        IFormFileCollection files = request.Form.Files;
+        // путь к папке, где будут храниться файлы
+        var uploadPath = $"{ Directory.GetCurrentDirectory()}/uploads";
+        // создаем папку для хранения файлов
+        Directory.CreateDirectory(uploadPath);
+        
+        foreach(var file in files)
         {
-            // определяем параметры сериализации/десериализации
-            var jsonoptions = new JsonSerializerOptions();
-            // добавляем конвертер кода json в объект типа Person
-            jsonoptions.Converters.Add(new PersonConverter());
-            // десериализуем данные с помощью конвертера PersonConverter
-            var person = await request.ReadFromJsonAsync<Person>(jsonoptions);
-            if (person != null)
-                responseText = $"Name: {person.Name}  Age: {person.Age}";
+            // путь к папке uploads
+            string fullPath = $"{uploadPath}/{file.FileName}";
+
+            // сохраняем файл в папку uploads
+            using (var fileStream = new FileStream(fullPath, FileMode.Create))
+            {
+                await file.CopyToAsync(fileStream);
+            }
         }
-        await response.WriteAsJsonAsync(new { text = responseText });
+        await responce.WriteAsync("Файлы успешно загружены");
     }
     else
     {
-        response.ContentType = "text/html; charset=utf-8";
-        await response.SendFileAsync("html/index.html");
+        await responce.SendFileAsync("html/index.html");
     }
-
-
-
-
-
-
-    //Person tom = new Person("Tom", 22);
-    //await context.Response.WriteAsJsonAsync(tom);
 });
 
 app.Run();
