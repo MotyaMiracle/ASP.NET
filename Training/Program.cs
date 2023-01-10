@@ -2,44 +2,39 @@ using Microsoft.Extensions.FileProviders;
 using System.ComponentModel;
 using System.Runtime.InteropServices.ComTypes;
 using System.Text.Json;
-using Training;
+using static System.Net.Mime.MediaTypeNames;
+using static System.Runtime.InteropServices.JavaScript.JSType;
+
 
 var builder = WebApplication.CreateBuilder();
 var app = builder.Build();
 
-app.Run(async (context) =>
+//string date = "";
+
+//app.Use(async (context, next) =>
+//{
+//    date = DateTime.Now.ToShortDateString();
+//    //await next.Invoke(); // объект HttpContext и делегат Func<Task>
+//    await next.Invoke(context); // здесь next - RequestDelegate
+//    Console.WriteLine($"Current date: {date}");
+
+//});
+
+//app.Run(async(context) => await context.Response.WriteAsync($"Date: {date}"));
+app.Use(GetDate);
+app.Run(async (context) => await context.Response.WriteAsync($"Hello METANIT.COM"));
+
+app.Run();
+async Task GetDate(HttpContext context, Func<Task> next)
 {
-    var response = context.Response;
-    var request = context.Request;
-    if(request.Path == "/api/user")
+    string? path = context.Request.Path.Value?.ToLower();
+    if (path == "/date")
     {
-        var responseText = "Неккоректные данные"; // Содержит сообщения по умолчанию
-        if (request.HasJsonContentType())
-        {
-            // определяем параметры сериализации/десериализации
-            var jsonoptions = new JsonSerializerOptions();
-            // добавляем конвертер кода json в объект типа Person
-            jsonoptions.Converters.Add(new PersonConverter());
-            // десериализуем данные с помощью конвертера PersonConverter
-            var person = await request.ReadFromJsonAsync<Person>(jsonoptions);
-            if (person != null)
-                responseText = $"Name: {person.Name}  Age: {person.Age}";
-        }
-        await response.WriteAsJsonAsync(new { text = responseText });
+        await context.Response.WriteAsync($"Date: {DateTime.Now.ToShortDateString()}");
     }
     else
     {
-        response.ContentType = "text/html; charset=utf-8";
-        await response.SendFileAsync("html/index.html");
+        await next.Invoke();
+        //await next.Invoke(context); // используется делегат RequestDelegate
     }
-
-
-
-
-
-
-    //Person tom = new Person("Tom", 22);
-    //await context.Response.WriteAsJsonAsync(tom);
-});
-
-app.Run();
+}
