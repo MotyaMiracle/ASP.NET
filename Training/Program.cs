@@ -7,7 +7,7 @@ using System.Text.Json;
 var builder = WebApplication.CreateBuilder();
 var app = builder.Build();
 
-app.Environment.EnvironmentName = "Production";
+//app.Environment.EnvironmentName = "Production"; // Программная установка значения среды
 
 if (app.Environment.IsDevelopment())
 {
