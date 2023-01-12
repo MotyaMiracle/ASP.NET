@@ -3,7 +3,7 @@ using Training;
 
 var builder = WebApplication.CreateBuilder(args);
 
-//builder.Services.AddTransient<ITimeService, ShortTimeService>();
+builder.Services.AddTransient<ITimeService, ShortTimeService>();
 
 var app = builder.Build();
 
