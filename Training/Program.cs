@@ -3,8 +3,8 @@ using Training;
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Services.AddScoped<ICounter, RandomCounter>();
-builder.Services.AddScoped<CounterService>();
+builder.Services.AddSingleton<ICounter, RandomCounter>();
+builder.Services.AddSingleton<CounterService>();
 
 
 var app = builder.Build();
