@@ -1,12 +1,17 @@
 using System.Text;
+using Training;
 
 var builder = WebApplication.CreateBuilder(args);
 
-var services = builder.Services; // Коллекция сервисов
-
-builder.Services.AddMvc();
+builder.Services.AddTransient<TimeService>();
 
 var app = builder.Build();
 
+app.UseMiddleware<TimerMiddleware>();
+
+app.Run(async context =>
+{
+    await context.Response.WriteAsync("Hello METANIT.COM");
+});
 
 app.Run();
