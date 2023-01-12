@@ -2,14 +2,13 @@
 {
     public class TimerMiddleware
     {
-        TimeService timeService;
+        
         RequestDelegate next;
-        public TimerMiddleware(TimeService timeService, RequestDelegate next)
+        public TimerMiddleware(RequestDelegate next)
         {
-            this.timeService = timeService;
             this.next = next;
         }
-        public async Task InvokeAsync(HttpContext context)
+        public async Task InvokeAsync(HttpContext context,TimeService timeService)
         {
             if(context.Request.Path == "/time")
             {
