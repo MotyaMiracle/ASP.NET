@@ -1,12 +1,14 @@
 using System.Text;
+using Training;
 
 var builder = WebApplication.CreateBuilder(args);
 
-var services = builder.Services; // Коллекция сервисов
+builder.Services.AddTransient<ICounter, RandomCounter>();
+builder.Services.AddTransient<CounterService>();
 
-builder.Services.AddMvc();
 
 var app = builder.Build();
 
+app.UseMiddleware<CounterMiddleware>();
 
 app.Run();
