@@ -1,12 +1,13 @@
 using System.Text;
+using Training;
 
 var builder = WebApplication.CreateBuilder(args);
 
-var services = builder.Services; // Коллекция сервисов
-
-builder.Services.AddMvc();
+builder.Services.AddTransient<IHelloService, RuHelloService>();
+builder.Services.AddTransient<IHelloService ,EnHelloService>();
 
 var app = builder.Build();
 
+app.UseMiddleware<HelloMiddleware>();
 
 app.Run();
