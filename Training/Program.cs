@@ -1,12 +1,13 @@
 using System.Text;
+using Training;
 
 var builder = WebApplication.CreateBuilder(args);
 
-var services = builder.Services; // Коллекция сервисов
-
-builder.Services.AddMvc();
+builder.Services.AddTransient<ITimer, Taimer>();
+builder.Services.AddScoped<TimeService>();
 
 var app = builder.Build();
 
+app.UseMiddleware<TimerMiddleware>();
 
 app.Run();
