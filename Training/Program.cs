@@ -3,12 +3,11 @@ var app = builder.Build();
 
 app.Use(async (context, next) =>
 {
-    if (context.Request.Path == "/date")
-        await context.Response.WriteAsync($"Date: {DateTime.Now.ToShortDateString()}");
-    else
-        await next.Invoke();
-});
+    await next.Invoke();
 
+    if (context.Response.StatusCode == 404)
+        await context.Response.WriteAsync("Resource Not Found");
+});
 app.Map("/", () => "Index Page");
 app.Map("/about", () => "About Page");
 
