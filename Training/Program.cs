@@ -11,12 +11,18 @@ var app = builder.Build();
 //app.UseDefaultFiles(options);
 //app.UseDefaultFiles(); // поддержка страниц html по умолчанию
 
-app.UseDirectoryBrowser(new DirectoryBrowserOptions()
+//app.UseDirectoryBrowser(new DirectoryBrowserOptions()
+//{
+//    FileProvider = new PhysicalFileProvider(Path.Combine(Directory.GetCurrentDirectory(), @"wwwroot\html")),
+//    RequestPath = new PathString("/pages")
+//});
+app.UseStaticFiles(); // добавляем поддержку статических файлов
+app.UseStaticFiles(new StaticFileOptions()
 {
-    FileProvider = new PhysicalFileProvider(Path.Combine(Directory.GetCurrentDirectory(), @"wwwroot\html")),
+    FileProvider = new PhysicalFileProvider(
+        Path.Combine(Directory.GetCurrentDirectory(), @"wwwroot\html")),
     RequestPath = new PathString("/pages")
 });
-app.UseStaticFiles(); // добавляем поддержку статических файлов
 
 app.Run(async context => await context.Response.WriteAsync("Hello World"));
 
