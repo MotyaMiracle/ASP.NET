@@ -16,14 +16,23 @@ var app = builder.Build();
 //    FileProvider = new PhysicalFileProvider(Path.Combine(Directory.GetCurrentDirectory(), @"wwwroot\html")),
 //    RequestPath = new PathString("/pages")
 //});
-app.UseStaticFiles(); // добавляем поддержку статических файлов
-app.UseStaticFiles(new StaticFileOptions()
+//app.UseStaticFiles(); // добавляем поддержку статических файлов
+//app.UseStaticFiles(new StaticFileOptions()
+//{
+//    FileProvider = new PhysicalFileProvider(
+//        Path.Combine(Directory.GetCurrentDirectory(), @"wwwroot\html")),
+//    RequestPath = new PathString("/pages")
+//});
+
+//app.UseFileServer(enableDirectoryBrowsing: true);
+app.UseFileServer(new FileServerOptions()
 {
-    FileProvider = new PhysicalFileProvider(
-        Path.Combine(Directory.GetCurrentDirectory(), @"wwwroot\html")),
-    RequestPath = new PathString("/pages")
+    EnableDirectoryBrowsing = true,
+    FileProvider = new PhysicalFileProvider(Path.Combine(Directory.GetCurrentDirectory(), @"wwwroot\html")),
+    RequestPath = new PathString("/pages"),
+    EnableDefaultFiles = false
 });
 
-app.Run(async context => await context.Response.WriteAsync("Hello World"));
+//app.Run(async context => await context.Response.WriteAsync("Hello World"));
 
 app.Run();
