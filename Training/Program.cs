@@ -1,4 +1,5 @@
-var builder = WebApplication.CreateBuilder(args);
+string[] commandLineArgs = { "name=Alice", "age=29" }; // псевдопараметры командной строки
+var builder = WebApplication.CreateBuilder(commandLineArgs);
 
 
 var app = builder.Build();
