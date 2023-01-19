@@ -1,9 +1,16 @@
 var builder = WebApplication.CreateBuilder(args);
+
+builder.Configuration.AddInMemoryCollection(new Dictionary<string, string>
+{
+    {"name", "Tom" },
+    {"age", "37" }
+}!);
+
 var app = builder.Build();
 
 // установка настроек конфигурации
-app.Configuration["name"] = "Tom";
-app.Configuration["age"] = "37";
+//app.Configuration["name"] = "Tom";
+//app.Configuration["age"] = "37";
 
 app.Run(async context =>
 {
