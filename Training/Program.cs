@@ -13,14 +13,19 @@ var app = builder.Build();
 //    var companyName = appConfig["company:name"];
 //    return $"{personName} - {companyName}";
 //});
-builder.Configuration.AddXmlFile("config.xml");
+//builder.Configuration.AddXmlFile("config.xml");
 
-app.Map("/", (IConfiguration appConfig) =>
-{
-    var personName = appConfig["person:profile:name"];
-    var companyName = appConfig["company:name"];
-    return $"{personName} - {companyName}";
-});
+//app.Map("/", (IConfiguration appConfig) =>
+//{
+//    var personName = appConfig["person:profile:name"];
+//    var companyName = appConfig["company:name"];
+//    return $"{personName} - {companyName}";
+//});
+
+builder.Configuration.AddIniFile("config.ini");
+
+app.Map("/", (IConfiguration appConfig) => $"{appConfig["person"]} - {appConfig["company"]}");
+
 
 
 app.Run();
