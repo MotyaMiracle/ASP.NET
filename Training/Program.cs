@@ -1,24 +1,20 @@
-var builder = WebApplication.CreateBuilder(args);
+using Microsoft.Extensions.Options;
+using Training;
 
-//builder.Configuration.AddInMemoryCollection(new Dictionary<string, string>
-//{
-//    {"name", "Tom" },
-//    {"age", "37" }
-//}!);
+var builder = WebApplication.CreateBuilder();
+builder.Configuration.AddJsonFile("person.json");
+builder.Services.Configure<Person>(builder.Configuration);
+builder.Services.Configure<Person>(opt =>
+{
+    opt.Age = 22;
+});
 
 var app = builder.Build();
 
-// установка настроек конфигурации
-app.Configuration["name"] = "Tom";
-app.Configuration["age"] = "37";
-
-//app.Run(async context =>
-//{
-//    // получение настроек конфигурации
-//    string name = app.Configuration["name"];
-//    string age = app.Configuration["age"];
-//    await context.Response.WriteAsync($"{name} - {age}");
-//});
-app.Map("/", (IConfiguration appConfig) => $"{appConfig["name"]} - {appConfig["age"]}");
+app.Map("/", (IOptions<Person> options) =>
+{
+    Person person = options.Value;  // получаем переданные через Options объект Person
+    return person;
+});
 
 app.Run();
