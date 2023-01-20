@@ -33,24 +33,33 @@ var app = builder.Build();
 //    await context.Response.WriteAsync($"{name}{age}{company}{langs}");
 //});
 
-builder.Configuration.AddXmlFile("person.xml");
+//builder.Configuration.AddXmlFile("person.xml");
 
-var tom = new Person();
-app.Configuration.Bind(tom);
+//var tom = new Person();
+//app.Configuration.Bind(tom);
 
-app.Run(async context =>
+//app.Run(async context =>
+//{
+//    context.Response.ContentType = "text/html; charset=utf-8";
+//    string name = $"<p>Name: {tom.Name}</p>";
+//    string age = $"<p>Age: {tom.Age}</p>";
+//    string company = $"<p>Company: {tom.Company?.Title}</p>";
+//    string langs = $"<p>Languages:</p><ul>";
+//    foreach (var lang in tom.Languages)
+//    {
+//        langs += $"<li><p>{lang}</p></li>";
+//    }
+//    langs += "</ul>";
+//    await context.Response.WriteAsync($"{name}{age}{company}{langs}");
+//});
+
+builder.Configuration.AddJsonFile("person.json");
+
+Company company = app.Configuration.GetSection("company").Get<Company>();
+
+app.Run(async (context) =>
 {
-    context.Response.ContentType = "text/html; charset=utf-8";
-    string name = $"<p>Name: {tom.Name}</p>";
-    string age = $"<p>Age: {tom.Age}</p>";
-    string company = $"<p>Company: {tom.Company?.Title}</p>";
-    string langs = $"<p>Languages:</p><ul>";
-    foreach (var lang in tom.Languages)
-    {
-        langs += $"<li><p>{lang}</p></li>";
-    }
-    langs += "</ul>";
-    await context.Response.WriteAsync($"{name}{age}{company}{langs}");
+    await context.Response.WriteAsync($"{company.Title} - {company.Country}");
 });
 
 
