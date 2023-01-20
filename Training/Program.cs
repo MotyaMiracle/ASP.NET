@@ -1,24 +1,18 @@
 var builder = WebApplication.CreateBuilder(args);
-
-//builder.Configuration.AddInMemoryCollection(new Dictionary<string, string>
-//{
-//    {"name", "Tom" },
-//    {"age", "37" }
-//}!);
-
 var app = builder.Build();
 
-// установка настроек конфигурации
-app.Configuration["name"] = "Tom";
-app.Configuration["age"] = "37";
+builder.Configuration.AddJsonFile("config.json");
+app.Map("/", (IConfiguration appConfig) =>
+{
+    IConfigurationSection connString = appConfig.GetSection("ConnectionStrings");
+    string defaultString = connString.GetSection("DefaultConnection").Value;
+    //string defaultConnection = appConfig.GetSection("ConnectionStrings:DefaultConnection").Value; // можно так
+    //string defaultConnection = appConfig["ConnectionStrings:DefaultConnection"];
+    string con = appConfig.GetConnectionString("DefaultConnection");
 
-//app.Run(async context =>
-//{
-//    // получение настроек конфигурации
-//    string name = app.Configuration["name"];
-//    string age = app.Configuration["age"];
-//    await context.Response.WriteAsync($"{name} - {age}");
-//});
-app.Map("/", (IConfiguration appConfig) => $"{appConfig["name"]} - {appConfig["age"]}");
+    return defaultString;
+});
+
+
 
 app.Run();

@@ -1,0 +1,6 @@
+{
+  "ConnectionStrings": {
+    "DefaultConnection": "Main Database",
+    "UsersContext" : "Users Databases"
+  }
+}
