@@ -4,17 +4,10 @@ using Training;
 var builder = WebApplication.CreateBuilder();
 builder.Configuration.AddJsonFile("person.json");
 builder.Services.Configure<Person>(builder.Configuration);
-builder.Services.Configure<Person>(opt =>
-{
-    opt.Age = 22;
-});
+builder.Services.Configure<Company>(builder.Configuration.GetSection("company"));
 
 var app = builder.Build();
 
-app.Map("/", (IOptions<Person> options) =>
-{
-    Person person = options.Value;  // получаем переданные через Options объект Person
-    return person;
-});
+app.Map("/", (IOptions<Company> options) => options.Value);
 
 app.Run();
