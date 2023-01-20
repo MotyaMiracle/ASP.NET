@@ -1,18 +1,28 @@
 var builder = WebApplication.CreateBuilder(args);
 var app = builder.Build();
 
-builder.Configuration.AddJsonFile("config.json");
-app.Map("/", (IConfiguration appConfig) =>
-{
-    IConfigurationSection connString = appConfig.GetSection("ConnectionStrings");
-    string defaultString = connString.GetSection("DefaultConnection").Value;
-    //string defaultConnection = appConfig.GetSection("ConnectionStrings:DefaultConnection").Value; // можно так
-    //string defaultConnection = appConfig["ConnectionStrings:DefaultConnection"];
-    string con = appConfig.GetConnectionString("DefaultConnection");
-
-    return defaultString;
-});
+builder.Configuration.AddJsonFile("project.json");
+app.Map("/", (IConfiguration appConfig) => GetSectionContent(appConfig.GetSection("projectConfig")));
 
 
 
 app.Run();
+
+string GetSectionContent(IConfigurationSection configSection)
+{
+    System.Text.StringBuilder contentBuilder = new();
+    foreach(var section in configSection.GetChildren())
+    {
+        contentBuilder.Append($"\"{section.Key}\":");
+        if(section.Value == null)
+        {
+            string subSectionContent = GetSectionContent(section);
+            contentBuilder.Append($"{{\n{subSectionContent}}},\n");
+        }
+        else
+        {
+            contentBuilder.Append($"\"{section.Value}\",\n");
+        }
+    }
+    return contentBuilder.ToString();
+}
