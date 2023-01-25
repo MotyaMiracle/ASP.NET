@@ -1,30 +1,32 @@
 var builder = WebApplication.CreateBuilder(args);
 var app = builder.Build();
 
-// Получение логгера через внедрение зависимостей
-//app.Map("/hello", (ILogger<Program> logger) =>
-//{
-//    logger.LogInformation($"Path: /hello Time: {DateTime.Now.ToLongTimeString()}");
-//    return "Hello World!";
-//});
+// Creating factory
+//ILoggerFactory loggerFactory = LoggerFactory.Create(builder => builder.AddConsole());
+//ILogger logger = loggerFactory.CreateLogger<Program>();
 
-// Ведение лога и ILogger
 //app.Run(async context =>
 //{
-//    // пишем на консоль информацию
-//    app.Logger.LogInformation($"Processing request: {context.Request.Path}");
-
+//    logger.LogInformation($"Requested Path: {context.Request.Path}");
 //    await context.Response.WriteAsync("Hello World!");
 //});
-// Уровни и методы логгирования
-app.Run(async (context) =>
-{
-    var path = context.Request.Path;
-    app.Logger.LogCritical($"LogCritical {path}");
-    app.Logger.LogError($"LogError {path}");
-    app.Logger.LogInformation($"LogInformation {path}");
-    app.Logger.LogWarning($"LogWarning {path}");
 
+// Getting a logger factory through dependency injection
+//app.Map("/hello", (ILoggerFactory loggerFactory) =>
+//{
+//    // создаем логгер с категорией "MapLogger"
+//    ILogger logger = loggerFactory.CreateLogger("MapLogger");
+//    // логгируем некоторое сообщение
+//    logger.LogInformation($"Path: /hello Time: {DateTime.Now.ToLongTimeString()}");
+//    return "Hello world!";
+//});
+
+// Logging providers
+ILoggerFactory loggerFactory = LoggerFactory.Create(builder => builder.AddDebug());
+ILogger logger = loggerFactory.CreateLogger<Program>();
+app.Run(async context =>
+{
+    logger.LogInformation($"Requested Path: {context.Request.Path}");
     await context.Response.WriteAsync("Hello World!");
 });
 app.Run();
