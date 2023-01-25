@@ -1,30 +1,15 @@
+using Training;
+
 var builder = WebApplication.CreateBuilder(args);
+
+builder.Logging.AddFile(Path.Combine(Directory.GetCurrentDirectory(), "logger.txt"));
+
 var app = builder.Build();
 
-// Получение логгера через внедрение зависимостей
-//app.Map("/hello", (ILogger<Program> logger) =>
-//{
-//    logger.LogInformation($"Path: /hello Time: {DateTime.Now.ToLongTimeString()}");
-//    return "Hello World!";
-//});
-
-// Ведение лога и ILogger
-//app.Run(async context =>
-//{
-//    // пишем на консоль информацию
-//    app.Logger.LogInformation($"Processing request: {context.Request.Path}");
-
-//    await context.Response.WriteAsync("Hello World!");
-//});
-// Уровни и методы логгирования
 app.Run(async (context) =>
 {
-    var path = context.Request.Path;
-    app.Logger.LogCritical($"LogCritical {path}");
-    app.Logger.LogError($"LogError {path}");
-    app.Logger.LogInformation($"LogInformation {path}");
-    app.Logger.LogWarning($"LogWarning {path}");
-
+    app.Logger.LogInformation($"Path: {context.Request.Path}  Time:{DateTime.Now.ToLongTimeString()}");
     await context.Response.WriteAsync("Hello World!");
 });
+
 app.Run();
