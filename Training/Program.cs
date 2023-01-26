@@ -1,7 +1,12 @@
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddDistributedMemoryCache(); // add IDistributedMemoryCache
-builder.Services.AddSession(); // adding session services
+builder.Services.AddSession(options =>
+{
+    options.Cookie.Name = ".MyAppSession";
+    options.IdleTimeout = TimeSpan.FromSeconds(3600);
+    options.Cookie.IsEssential = true;
+}); // adding session services
 
 var app = builder.Build();
 
