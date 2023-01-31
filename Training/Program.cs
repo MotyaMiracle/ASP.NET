@@ -1,28 +1,43 @@
-﻿var builder = WebApplication.CreateBuilder(args);
+﻿var builder = WebApplication.CreateBuilder(
+    new WebApplicationOptions { WebRootPath = "Files"}); // add folder to store files
 var app = builder.Build();
 
-// StatusCode
-app.Map("/about", () => Results.StatusCode(401));
-
-// NotFound
-app.Map("/contacts", () => Results.NotFound(new { message = "Resource Not Found" }));
-app.Map("/address", () => Results.NotFound("Error 404. Invalid address"));
-
-// Unauthorized
-app.Map("/acc", () => Results.Unauthorized());
-app.Map("/", () => "Hello World!");
-
-// BadRequest
-app.Map("/content/{age:int}", (int age) =>
+// Sending a file as an array of bytes
+app.Map("/stone_island", async () =>
 {
-    if (age < 18)
-        return Results.BadRequest(new { message = "Invalid age" });
-    else
-        return Results.Content("Access is available");
+    string path = "Files/pngegg.png";
+    byte[] fileContent = await File.ReadAllBytesAsync(path); // read file into byte array
+    string contentType = "image/png"; // mime type setting
+    string downloadName = "stone_island.png"; // set load name
+    return Results.File(fileContent, contentType, downloadName);
+
 });
 
-// Ok
-app.Map("/car", () => Results.Ok("Lamborgini"));
-app.Map("/access", () => Results.Ok(new { message = "Success!" }));
+// Sending as a file stream
+app.Map("/stone_island1", () =>
+{
+    string path = "Files/pngegg.png";
+    FileStream fileStream = new FileStream(path, FileMode.Open);
+    string contentType = "image/png";
+    string downloadName = "stone_island1.png";
+    return Results.File(fileStream, contentType, downloadName);
+});
+
+// Sending a file to a specific path
+app.Map("/stone_island2", () =>
+{
+    string path = "Files/pngegg.png";
+    string contentType = "image/png";
+    string downloadName = "stone_island2.png";
+    return Results.File(path, contentType, downloadName);
+});
+
+app.Map("/stone_island3", () =>
+{
+    string path = "Files/pngegg.png";
+    string contentType = "image/png";
+    string downloadName = "stone_island3.png";
+    return Results.File(path, contentType, downloadName);
+});
 
 app.Run();
