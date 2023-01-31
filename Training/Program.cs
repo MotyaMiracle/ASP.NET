@@ -1,43 +1,30 @@
-﻿var builder = WebApplication.CreateBuilder(
-    new WebApplicationOptions { WebRootPath = "Files"}); // add folder to store files
+﻿using Training;
+
+var builder = WebApplication.CreateBuilder();
 var app = builder.Build();
 
-// Sending a file as an array of bytes
-app.Map("/stone_island", async () =>
-{
-    string path = "Files/pngegg.png";
-    byte[] fileContent = await File.ReadAllBytesAsync(path); // read file into byte array
-    string contentType = "image/png"; // mime type setting
-    string downloadName = "stone_island.png"; // set load name
-    return Results.File(fileContent, contentType, downloadName);
+// send html code when accessed along the path "/"
+app.Map("/", () => Results.Extensions.Html(@"<!DOCTYPE html>
+<html>
+<head>
+<title>METANIT.COM</title>
+<meta charset='utf-8' />
+</head>
+<body>
+<h1>Hello METANIT.COM</h1>
+</body>
+</html>
+"));
 
-});
-
-// Sending as a file stream
-app.Map("/stone_island1", () =>
-{
-    string path = "Files/pngegg.png";
-    FileStream fileStream = new FileStream(path, FileMode.Open);
-    string contentType = "image/png";
-    string downloadName = "stone_island1.png";
-    return Results.File(fileStream, contentType, downloadName);
-});
-
-// Sending a file to a specific path
-app.Map("/stone_island2", () =>
-{
-    string path = "Files/pngegg.png";
-    string contentType = "image/png";
-    string downloadName = "stone_island2.png";
-    return Results.File(path, contentType, downloadName);
-});
-
-app.Map("/stone_island3", () =>
-{
-    string path = "Files/pngegg.png";
-    string contentType = "image/png";
-    string downloadName = "stone_island3.png";
-    return Results.File(path, contentType, downloadName);
-});
-
+//app.Map("/", () => new HtmlResult(@"<!DOCTYPE html>
+//<html>
+//<head>
+//<title>METANIT.COM</title>
+//<meta charset='utf-8' />
+//</head>
+//<body>
+//<h1>Hello METANIT.COM</h1>
+//</body>
+//</html>
+//"));
 app.Run();

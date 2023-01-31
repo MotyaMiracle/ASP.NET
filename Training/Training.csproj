@@ -7,11 +7,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Content Remove="wwwroot\Files\pngegg.png" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <None Include="wwwroot\Files\pngegg.png" />
+    <Folder Include="wwwroot\" />
   </ItemGroup>
 
 </Project>
