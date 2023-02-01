@@ -13,55 +13,58 @@ builder.Services.AddDbContext<ApplicationContext>(options => options.UseNpgsql(c
 
 var app = builder.Build();
 
-//app.UseDefaultFiles();
-//app.UseStaticFiles();
+app.UseDefaultFiles();
+app.UseStaticFiles();
 
-app.MapGet("/", (ApplicationContext db) => db.Users.ToList());
+app.MapGet("/api/users", async (ApplicationContext db) => await db.Users.ToListAsync());
 
-//app.MapGet("/api/users/{id}", (string id) =>
-//{
-//    // get user by id
-//    User? user = users.FirstOrDefault(u => u.Id == id);
-//    // if not found, send status code and error message
-//    if (user == null) return Results.NotFound(new { message = "Пользователь не найден" });
+app.MapGet("/api/users/{id:int}", async (int id, ApplicationContext db) =>
+{
+    // get user by id
+    User? user = await db.Users.FirstOrDefaultAsync(u => u.Id == id);
+    // if not found, send status code and error message
+    if (user == null) return Results.NotFound(new { message = "Пользователь не найден" });
 
-//    // if the user is found, send it
-//    return Results.Json(user);
-//});
+    // if the user is found, send it
+    return Results.Json(user);
+});
 
-//app.MapDelete("/api/users/{id}", (string id) =>
-//{
-//    // get user by id
-//    User? user = users.FirstOrDefault(u => u.Id == id);
+app.MapDelete("/api/users/{id:int}", async(int id, ApplicationContext db) =>
+{
+    // get user by id
+    User? user = await db.Users.FirstOrDefaultAsync(u => u.Id == id);
 
-//    // if not found, send status code and error message
-//    if (user == null) return Results.NotFound(new { message = "Пользователь не найден" });
+    // if not found, send status code and error message
+    if (user == null) return Results.NotFound(new { message = "Пользователь не найден" });
 
-//    // if the user is found, delete it
-//    users.Remove(user);
-//    return Results.Json(user);
-//});
+    // if the user is found, delete it
+    db.Users.Remove(user);
+    await db.SaveChangesAsync();
+    return Results.Json(user);
+});
 
-//app.MapPost("/api/users", (User user) => {
+app.MapPost("/api/users", async(User user, ApplicationContext db) =>
+{
 
-//    // set id for new user
-//    user.Id = Guid.NewGuid().ToString();
-//    // add the user to the list
-//    users.Add(user);
-//    return user;
-//});
+    // add user to array
+    await db.Users.AddAsync(user);
+    await db.SaveChangesAsync();
+    return user;
+});
 
-//app.MapPut("/api/users", (User userData) => {
+app.MapPut("/api/users", async(User userData, ApplicationContext db) =>
+{
 
-//    // get user by id
-//    var user = users.FirstOrDefault(u => u.Id == userData.Id);
-//    // if not found, send status code and error message
-//    if (user == null) return Results.NotFound(new { message = "Пользователь не найден" });
-//    // if the user is found, change his data and send it back to the client
+    // get user by id
+    var user = await db.Users.FirstOrDefaultAsync(u => u.Id == userData.Id);
+    // if not found, send status code and error message
+    if (user == null) return Results.NotFound(new { message = "Пользователь не найден" });
+    // if the user is found, change his data and send it back to the client
 
-//    user.Age = userData.Age;
-//    user.Name = userData.Name;
-//    return Results.Json(user);
-//});
+    user.Age = userData.Age;
+    user.Name = userData.Name;
+    await db.SaveChangesAsync();
+    return Results.Json(user);
+});
 
 app.Run();
