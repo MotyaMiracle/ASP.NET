@@ -5,6 +5,7 @@ var builder = WebApplication.CreateBuilder(args);
 // adding authentication services
 builder.Services.AddAuthentication("Bearer") // authentication scheme - using jwt tokens
     .AddJwtBearer(); // connect authentication using jwt tokens
+builder.Services.AddAuthorization(); // adding authorization services
 
 var app = builder.Build();
 
