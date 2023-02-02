@@ -4,79 +4,85 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 using Training;
-
-
-// conditional database with users
-var people = new List<Person>
-{
-    new Person{Email = "tom@gmail.com", Password = "12345"},
-    new Person{Email = "bob@gmail.com", Password = "55555"}
-};
+using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Authentication;
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Services.AddAuthorization(); // adding authorization services
-// adding authentication services
-builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
-    .AddJwtBearer(options =>
-    {
-        options.TokenValidationParameters = new TokenValidationParameters()
-        {
-            // indicates whether the publisher will be validated when the token is validated
-            ValidateIssuer = true,
-            // string representing the publisher
-            ValidIssuer = AuthOptions.ISSUER,
-            // whether the consumer of the token will be validated
-            ValidateAudience = true,
-            // set consumer token
-            ValidAudience = AuthOptions.AUDIENCE,
-            // whether lifetime will be validated
-            ValidateLifetime = true,
-            // set the security key
-            IssuerSigningKey = AuthOptions.GetSymmetricSecurityKey(),
-            // validate the security key
-            ValidateIssuerSigningKey = true,
-        };
-    });
+// условная бд с пользователями
+var people = new List<Person>
+{
+    new Person{Email = "tom@gmail.com", Password ="12345" },
+    new Person{Email = "bob@gmail.com", Password = "55555"}
+};
+
+builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
+    .AddCookie(options => options.LoginPath = "/login");
+builder.Services.AddAuthorization();
+
 var app = builder.Build();
 
-app.UseDefaultFiles();
-app.UseStaticFiles();
+app.UseAuthentication();
+app.UseAuthorization();
 
-app.UseAuthentication(); // add authentication middleware
-app.UseAuthorization(); // adding authorization middleware
-
-app.MapPost("/login", (Person loginData) =>
+app.MapGet("/login", async (HttpContext context) =>
 {
-    // find the user
-    Person? person = people.FirstOrDefault(p => p.Email == loginData.Email && p.Password == loginData.Password);
-    // if user not found, send status code 401
-    if (person is null)
-        return Results.Unauthorized();
-
-    var claims = new List<Claim> { new Claim(ClaimTypes.Name, person.Email) };
-    // create a JWT token
-    var jwt = new JwtSecurityToken(
-        issuer: AuthOptions.ISSUER,
-        audience: AuthOptions.AUDIENCE,
-        claims: claims,
-        expires: DateTime.UtcNow.Add(TimeSpan.FromMinutes(2)),
-        signingCredentials: new SigningCredentials(AuthOptions.GetSymmetricSecurityKey(), 
-        SecurityAlgorithms.HmacSha256));
-    var encodedJwt = new JwtSecurityTokenHandler().WriteToken(jwt);
-
-    // form the response
-    var response = new
-    {
-        access_token = encodedJwt,
-        username = person.Email
-    };
-    
-    return Results.Json(response);
+    context.Response.ContentType = "text/html; charset=utf-8";
+    string loginForm = @"<!DOCTYPE html>
+    <html>
+    <head>
+        <meta charset='utf-8' />
+        <title>METANIT.COM</title>
+    </head>
+    <body>
+        <h2>Login Form</h2>
+        <form method='post'>
+            <p>
+                <label>Email</label><br />
+                <input name='email' />
+            </p>
+            <p>
+                <label>Password</label><br />
+                <input type='password' name='password' />
+            </p>
+            <input type='submit' value='Login' />
+        </form>
+    </body>
+    </html>";
+    await context.Response.WriteAsync(loginForm);
 });
 
+app.MapPost("/login", async (string? returnUrl, HttpContext context) =>
+{
+    // get email and password from the form
+    var form = context.Request.Form;
+    // if email and/or password are not set, send a 400 error status code
+    if (!form.ContainsKey("email") || !form.ContainsKey("password"))
+        return Results.BadRequest("Email и/или пароль не установлены");
 
-app.Map("/data", [Authorize] () => $"Hello World!");
+    string email = form["email"];
+    string password = form["password"];
+
+    // find the user
+    Person? person = people.FirstOrDefault(p => p.Email == email && p.Password == password);
+    // if user not found, send status code 401
+    if (person is null) return Results.Unauthorized();
+
+    var claims = new List<Claim> { new Claim(ClaimTypes.Name, person.Email) };
+    // create a ClaimsIdentity object
+    ClaimsIdentity claimsIdentity = new ClaimsIdentity(claims, "Cookies");
+    // set authentication cookies
+    await context.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, new ClaimsPrincipal(claimsIdentity));
+    return Results.Redirect(returnUrl ?? "/");
+});
+
+app.MapGet("/logout", async (HttpContext context) =>
+{
+    await context.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
+    return Results.Redirect("/login");
+});
+
+app.Map("/", [Authorize] () => $"Hello World!");
 
 
 app.Run();
