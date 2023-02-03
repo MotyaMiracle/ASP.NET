@@ -9,29 +9,21 @@ using Microsoft.AspNetCore.Authentication;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// условная бд с пользователями
-var people = new List<Person>
-{
-    new Person{Email = "tom@gmail.com", Password ="12345" },
-    new Person{Email = "bob@gmail.com", Password = "55555"}
-};
-
 builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
     .AddCookie();
-builder.Services.AddAuthorization();
 
 var app = builder.Build();
 
 app.UseAuthentication();
-app.UseAuthorization();
 
-app.MapGet("/login", async (HttpContext context) =>
+
+app.MapGet("/login/{username}", async (string username,HttpContext context) =>
 {
-    var claimsIdentity = new ClaimsIdentity("Undefined");
-    var claimsPrincipal = new ClaimsPrincipal(claimsIdentity);
-    // set authentication cookies
-    await context.SignInAsync(claimsPrincipal);
-    return Results.Redirect("/");
+    var claims = new List<Claim> { new Claim(ClaimTypes.Name, username) };
+    var claimIdentity = new ClaimsIdentity(claims, "Cookies");
+    var claimPrincipal = new ClaimsPrincipal(claimIdentity);
+    await context.SignInAsync(claimPrincipal);
+    return $"Установлено имя {username}";
 });
 
 app.MapGet("/logout", async (HttpContext context) =>
@@ -44,17 +36,9 @@ app.Map("/", (HttpContext context) =>
 {
     var user = context.User.Identity;
     if(user is not null && user.IsAuthenticated)
-        return $"Пользователь аутентифицирован. Тип аутентификации: {user.AuthenticationType}";
+        return $"UserName: {user.Name}";
     else
         return "Пользователь НЕ аутентифицирован";
-});
-
-app.Map("/", (ClaimsPrincipal claimsPrincipal) =>
-{
-    var user = claimsPrincipal.Identity;
-    if (user is not null && user.IsAuthenticated)
-        return "Пользователь аутентифицирован";
-    else return "Пользователь не аутентифицирован";
 });
 
 app.Run();
