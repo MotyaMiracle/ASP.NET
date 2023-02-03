@@ -11,8 +11,9 @@ var adminRole = new Role("admin");
 var userRole = new Role("user");
 var people = new List<Person>
 {
-    new Person("tom@gmail.com", "12345", adminRole),
-    new Person("bob@gmail.com", "55555", userRole),
+    new Person("tom@gmail.com", "12345", "London", "Microsoft"),
+    new Person("bob@gmail.com", "55555", "Лондон", "Google"),
+    new Person("sam@gmail.com", "11111", "Berlin", "Microsoft")
 };
 
 var builder = WebApplication.CreateBuilder(args);
@@ -23,7 +24,17 @@ builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationSc
         options.LoginPath = "/login";
         options.AccessDeniedPath = "/accessdenied";
     });
-builder.Services.AddAuthorization();
+builder.Services.AddAuthorization(opts =>
+{
+    opts.AddPolicy("OnlyForLondon", policy =>
+    {
+        policy.RequireClaim(ClaimTypes.Locality, "Лондон", "London");
+    });
+    opts.AddPolicy("OnlyForMicrosoft", policy =>
+    {
+        policy.RequireClaim("company", "Microsoft");
+    });
+});
 
 var app = builder.Build();
 
@@ -79,8 +90,9 @@ app.MapPost("/login", async (string? returnUrl, HttpContext context) =>
     if (person is null) return Results.Unauthorized();
     var claims = new List<Claim>
     {
-        new Claim(ClaimsIdentity.DefaultNameClaimType, email),
-        new Claim(ClaimsIdentity.DefaultRoleClaimType, person.Role.Name)
+        new Claim(ClaimTypes.Name, email),
+        new Claim(ClaimTypes.Locality, person.City),
+        new Claim("company", person.Company)
     };
     var claimsIdentity = new ClaimsIdentity(claims, "Cookies");
     var claimsPrincipal = new ClaimsPrincipal(claimsIdentity);
@@ -88,15 +100,22 @@ app.MapPost("/login", async (string? returnUrl, HttpContext context) =>
     return Results.Redirect(returnUrl ?? "/");
 });
 
+// access only for City = London
+app.Map("/london", [Authorize(Policy = "OnlyForLondon")] () => "You are living in London");
+
+// access only for Company = Microsoft
+app.Map("/microsoft", [Authorize(Policy = "OnlyForMicrosoft")]() => "You are working in Microsoft");
+
 // access only for the admin role
 app.Map("/admin", [Authorize(Roles = "admin")] () => "Admin Panel");
 
 // access only for admin and user roles
-app.Map("/", [Authorize(Roles = "admin, user")] (HttpContext context) =>
+app.Map("/", /*[Authorize(Roles = "admin, user")]*/ (HttpContext context) =>
 {
-    var login = context.User.FindFirst(ClaimsIdentity.DefaultNameClaimType);
-    var role = context.User.FindFirst(ClaimsIdentity.DefaultRoleClaimType);
-    return $"Name: {login?.Value}\nRole: {role?.Value}";
+    var login = context.User.FindFirst(ClaimTypes.Name);
+    var city = context.User.FindFirst(ClaimTypes.Locality);
+    var company = context.User.FindFirst("company");
+    return $"Name: {login?.Value}\nCity: {city?.Value}\nCompany: {company?.Value}";
 });
 
 app.MapGet("/logout", async (HttpContext context) =>
