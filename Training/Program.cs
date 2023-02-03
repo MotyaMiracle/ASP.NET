@@ -11,13 +11,13 @@ var adminRole = new Role("admin");
 var userRole = new Role("user");
 var people = new List<Person>
 {
-    new Person("tom@gmail.com", "12345", "London", "Microsoft"),
-    new Person("bob@gmail.com", "55555", "Лондон", "Google"),
-    new Person("sam@gmail.com", "11111", "Berlin", "Microsoft")
+    new Person("tom@gmail.com", "12345", 1984),
+    new Person("bob@gmail.com", "55555", 2006)
 };
 
 var builder = WebApplication.CreateBuilder(args);
-
+// embed the AgeHandler service
+builder.Services.AddTransient<IAuthorizationHandler, AgeHandler>();
 builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
     .AddCookie(options =>
     {
@@ -26,13 +26,10 @@ builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationSc
     });
 builder.Services.AddAuthorization(opts =>
 {
-    opts.AddPolicy("OnlyForLondon", policy =>
+    // set age limit
+    opts.AddPolicy("AgeLimit", policy =>
     {
-        policy.RequireClaim(ClaimTypes.Locality, "Лондон", "London");
-    });
-    opts.AddPolicy("OnlyForMicrosoft", policy =>
-    {
-        policy.RequireClaim("company", "Microsoft");
+        policy.AddRequirements(new AgeRequirement(18));
     });
 });
 
@@ -91,14 +88,16 @@ app.MapPost("/login", async (string? returnUrl, HttpContext context) =>
     var claims = new List<Claim>
     {
         new Claim(ClaimTypes.Name, email),
-        new Claim(ClaimTypes.Locality, person.City),
-        new Claim("company", person.Company)
+        new Claim(ClaimTypes.DateOfBirth, person.Year.ToString())
     };
     var claimsIdentity = new ClaimsIdentity(claims, "Cookies");
     var claimsPrincipal = new ClaimsPrincipal(claimsIdentity);
     await context.SignInAsync(claimsPrincipal);
     return Results.Redirect(returnUrl ?? "/");
 });
+
+// access only for those who meet the Age Limit
+app.Map("/age", [Authorize(Policy = "AgeLimit")] () => "Age Limit is passed");
 
 // access only for City = London
 app.Map("/london", [Authorize(Policy = "OnlyForLondon")] () => "You are living in London");
@@ -113,9 +112,8 @@ app.Map("/admin", [Authorize(Roles = "admin")] () => "Admin Panel");
 app.Map("/", /*[Authorize(Roles = "admin, user")]*/ (HttpContext context) =>
 {
     var login = context.User.FindFirst(ClaimTypes.Name);
-    var city = context.User.FindFirst(ClaimTypes.Locality);
-    var company = context.User.FindFirst("company");
-    return $"Name: {login?.Value}\nCity: {city?.Value}\nCompany: {company?.Value}";
+    var year = context.User.FindFirst(ClaimTypes.DateOfBirth);
+    return $"Name: {login?.Value}\nYear: {year?.Value}";
 });
 
 app.MapGet("/logout", async (HttpContext context) =>
